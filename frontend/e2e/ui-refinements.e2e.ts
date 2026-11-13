@@ -87,6 +87,13 @@ test('theme toggle persists across refreshes and pages', async ({ page }) => {
   expect(await page.evaluate(() => localStorage.getItem('quill-theme'))).toBe('light')
 })
 
+test('light mode is the default even when the operating system prefers dark mode', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/login')
+  await expect(page.locator('html')).not.toHaveClass(/dark/)
+  expect(await page.evaluate(() => localStorage.getItem('quill-theme'))).toBeNull()
+})
+
 test('quill.svg is the logo on login, dashboard and editor, and the favicon', async ({ page }) => {
   const checkLogo = async () => {
     const mark = page.getByTestId('logo-mark').first()
@@ -111,14 +118,20 @@ test('quill.svg is the logo on login, dashboard and editor, and the favicon', as
 
 // ---- Header layout, zoom, status bar ---------------------------------------------------------------
 
-test('header order: save status, Share, avatar on the right', async ({ page }) => {
+test('header order: saved status before mode toggle; File menu is on the left', async ({ page }) => {
   await login(page)
   await page.goto(`/documents/${await createDoc(page, 'Header doc')}`)
   const x = async (locator: ReturnType<Page['locator']>) => (await locator.boundingBox())!.x
   const status = await x(page.getByTestId('save-status'))
+  const mode = await x(page.getByRole('radiogroup', { name: 'Mode' }))
   const share = await x(page.getByRole('button', { name: 'Share' }))
   const avatar = await x(page.getByTestId('user-avatar'))
+  const file = await page.getByRole('button', { name: 'File menu' }).boundingBox()
+  const toolbar = await page.getByRole('toolbar', { name: 'Formatting' }).boundingBox()
   expect(status).toBeLessThan(share)
+  expect(status).toBeLessThan(mode)
+  expect(file!.x + file!.width).toBeLessThanOrEqual(toolbar!.x)
+  expect(file!.x).toBeLessThan(1280 / 2)
   expect(share).toBeLessThan(avatar)
   expect(avatar).toBeGreaterThan(1280 / 2) // right half of the header
 })

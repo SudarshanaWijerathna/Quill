@@ -257,11 +257,11 @@ function DocumentWorkspace({ doc }: { doc: DocumentDetail }) {
             </div>
           </div>
 
-          {/* Right side: mode, theme, save status, Share, avatar */}
+          {/* Right side: save status, mode, theme, Share, avatar */}
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            {canEdit && !accessLost && <SaveIndicator status={status} onRetry={retry} />}
             {canEdit && !accessLost && <ModeToggle mode={mode} onChange={setMode} />}
             <ThemeToggle className="text-muted-foreground" />
-            {canEdit && !accessLost && <SaveIndicator status={status} onRetry={retry} />}
             {isOwner && (
               <Button variant="outline" className="shrink-0" onClick={() => setShareOpen(true)} aria-label="Share">
                 <Share2 />
@@ -276,7 +276,7 @@ function DocumentWorkspace({ doc }: { doc: DocumentDetail }) {
           <EditorToolbar
             editor={editor}
             readOnly={!editingActive}
-            trailing={<FileMenu doc={doc} flushPendingSaves={flushPendingSaves} />}
+            leading={<FileMenu doc={doc} flushPendingSaves={flushPendingSaves} />}
           />
         </div>
       </header>

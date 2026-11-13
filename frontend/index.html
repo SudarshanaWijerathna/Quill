@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/quill.svg" />
     <script>
-      // Apply the saved theme before first paint (no light flash). Mirrors src/lib/theme.ts.
+      // Apply the saved theme before first paint. Mirrors src/lib/theme.ts.
       try {
         var t = localStorage.getItem("quill-theme")
-        if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark")
+        if (t === "dark") document.documentElement.classList.add("dark")
       } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

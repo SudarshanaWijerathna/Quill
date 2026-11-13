@@ -104,13 +104,13 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
 export function EditorToolbar({
   editor,
   readOnly = false,
-  trailing,
+  leading,
 }: {
   editor: Editor
   /** Viewing mode / view-only access: controls stay visible but disabled. */
   readOnly?: boolean
-  /** Rendered at the far right of the toolbar row (the File menu). */
-  trailing?: ReactNode
+  /** Rendered at the far left of the toolbar row (the File menu). */
+  leading?: ReactNode
 }) {
   // Re-renders only when these derived values change (not on every keystroke).
   const state = useEditorState({
@@ -171,6 +171,7 @@ export function EditorToolbar({
   return (
     <>
       <div className="flex items-center">
+      {leading && <div className="flex shrink-0 items-center border-r px-2">{leading}</div>}
       <div
         role="toolbar"
         aria-disabled={disabled || undefined}
@@ -325,7 +326,6 @@ export function EditorToolbar({
           </>
         )}
       </div>
-      {trailing && <div className="flex shrink-0 items-center border-l px-2">{trailing}</div>}
       </div>
 
       <LinkDialog key={linkDialogKey} editor={editor} state={linkDialog} onClose={() => setLinkDialog(null)} />

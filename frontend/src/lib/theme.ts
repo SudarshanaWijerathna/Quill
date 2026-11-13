@@ -3,7 +3,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 /**
  * Light/dark theme. The choice is a per-viewer preference, so localStorage is the right place
  * for it. index.html applies it before first paint; this module keeps it in sync afterwards.
- * Without a saved choice, the OS setting (prefers-color-scheme) is used.
+ * Without a saved choice, light mode is used.
  */
 export type Theme = 'light' | 'dark'
 export const THEME_STORAGE_KEY = 'quill-theme'
@@ -15,12 +15,8 @@ function readStored(): Theme | null {
     const value = localStorage.getItem(THEME_STORAGE_KEY)
     return value === 'light' || value === 'dark' ? value : null
   } catch {
-    return null // storage blocked (private mode, sandbox): fall back to the OS setting
+    return null // storage blocked (private mode, sandbox): use the light default
   }
-}
-
-function systemTheme(): Theme {
-  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 export function currentTheme(): Theme {
@@ -43,14 +39,11 @@ export function setTheme(theme: Theme) {
 }
 
 let initialized = false
-/** Call once at startup: syncs state and follows OS changes while the user hasn't chosen. */
+/** Call once at startup: applies the saved preference or the light-mode default. */
 export function initTheme() {
   if (initialized) return
   initialized = true
-  apply(readStored() ?? systemTheme())
-  matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
-    if (!readStored()) apply(systemTheme())
-  })
+  apply(readStored() ?? 'light')
   // Print / "Save as PDF" always uses the light palette.
   let printedFrom: Theme | null = null
   window.addEventListener('beforeprint', () => {
