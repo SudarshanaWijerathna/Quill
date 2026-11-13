@@ -1,0 +1,41 @@
+# Fly.io configuration for Quill (single machine + persistent volume for SQLite).
+# Deploy: fly deploy --ha=false   (SQLite on a volume must run on exactly one machine)
+app = "quill-docs-assessment"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+  [build.args]
+    # Assessment build: show demo-account shortcuts on the login page.
+    VITE_SHOW_DEMO_ACCOUNTS = "true"
+
+[env]
+  ENVIRONMENT = "production"
+  DATABASE_URL = "sqlite:////data/quill.db"
+  FRONTEND_DIST = "/app/static"
+  COOKIE_SECURE = "true"
+  COOKIE_SAMESITE = "lax"
+  CORS_ORIGINS = "https://quill-docs-assessment.fly.dev"
+
+[[mounts]]
+  source = "quill_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

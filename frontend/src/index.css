@@ -1,0 +1,251 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+    --radius: 0.625rem;
+    --background: oklch(1 0 0);
+    /* Quill palette: neutral surfaces, deep navy primary */
+    --foreground: oklch(0.21 0.03 264);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.21 0.03 264);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.21 0.03 264);
+    --primary: oklch(0.32 0.11 262);
+    --primary-foreground: oklch(0.985 0.005 250);
+    --secondary: oklch(0.97 0.006 255);
+    --secondary-foreground: oklch(0.28 0.06 262);
+    --muted: oklch(0.975 0.004 255);
+    --muted-foreground: oklch(0.52 0.02 260);
+    --accent: oklch(0.955 0.018 258);
+    --accent-foreground: oklch(0.30 0.10 262);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.925 0.006 255);
+    --input: oklch(0.91 0.008 255);
+    --ring: oklch(0.55 0.14 260);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.985 0.003 255);
+    --sidebar-foreground: oklch(0.21 0.03 264);
+    --sidebar-primary: oklch(0.32 0.11 262);
+    --sidebar-primary-foreground: oklch(0.985 0.005 250);
+    --sidebar-accent: oklch(0.955 0.018 258);
+    --sidebar-accent-foreground: oklch(0.30 0.10 262);
+    --sidebar-border: oklch(0.925 0.006 255);
+    --sidebar-ring: oklch(0.55 0.14 260);
+}
+
+.dark {
+    /* Quill dark palette: deep navy surfaces, light-blue primary */
+    --background: oklch(0.18 0.02 262);
+    --foreground: oklch(0.94 0.01 255);
+    --card: oklch(0.21 0.025 262);
+    --card-foreground: oklch(0.94 0.01 255);
+    --popover: oklch(0.23 0.025 262);
+    --popover-foreground: oklch(0.94 0.01 255);
+    --primary: oklch(0.74 0.12 255);
+    --primary-foreground: oklch(0.2 0.05 262);
+    --secondary: oklch(0.27 0.03 262);
+    --secondary-foreground: oklch(0.94 0.01 255);
+    --muted: oklch(0.25 0.025 262);
+    --muted-foreground: oklch(0.7 0.025 258);
+    --accent: oklch(0.3 0.05 262);
+    --accent-foreground: oklch(0.9 0.04 255);
+    --destructive: oklch(0.7 0.19 22);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.65 0.12 258);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.16 0.02 262);
+    --sidebar-foreground: oklch(0.94 0.01 255);
+    --sidebar-primary: oklch(0.74 0.12 255);
+    --sidebar-primary-foreground: oklch(0.2 0.05 262);
+    --sidebar-accent: oklch(0.27 0.04 262);
+    --sidebar-accent-foreground: oklch(0.92 0.03 255);
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: oklch(0.65 0.12 258);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* ---- Editor document typography (Tiptap / ProseMirror) ---------------------------------------- */
+@layer components {
+  .quill-prose {
+    @apply min-h-[60vh] text-[16px] leading-[1.75] text-foreground outline-none;
+    font-feature-settings: "cv11", "ss01";
+    overflow-wrap: break-word;
+  }
+  .quill-prose > * + * { @apply mt-3; }
+  .quill-prose p { @apply my-0; }
+  .quill-prose h1 { @apply mt-8 mb-3 text-[2rem] leading-tight font-semibold tracking-tight; }
+  .quill-prose h2 { @apply mt-7 mb-2 text-2xl leading-snug font-semibold tracking-tight; }
+  .quill-prose h3 { @apply mt-6 mb-2 text-lg leading-snug font-semibold; }
+  .quill-prose > :first-child { @apply mt-0; }
+  .quill-prose ul { @apply list-disc pl-6; }
+  .quill-prose ol { @apply list-decimal pl-6; }
+  .quill-prose li { @apply my-1 pl-1; }
+  .quill-prose li > p { @apply my-0; }
+  .quill-prose li::marker { @apply text-muted-foreground; }
+  .quill-prose blockquote { @apply border-l-[3px] border-primary/25 py-0.5 pl-4 text-muted-foreground; }
+  .quill-prose blockquote > * + * { @apply mt-2; }
+  .quill-prose code { @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.875em]; }
+  .quill-prose pre { @apply overflow-x-auto rounded-lg bg-muted/60 p-4 font-mono text-[13.5px] leading-relaxed ring-1 ring-border; }
+  .quill-prose pre code { @apply bg-transparent p-0 text-[inherit]; }
+  .quill-prose hr { @apply my-8 border-border; }
+  .quill-prose hr.ProseMirror-selectednode { @apply border-primary; }
+  .quill-prose strong { @apply font-semibold; }
+  .quill-prose s { @apply text-muted-foreground; }
+  .quill-prose a { @apply cursor-pointer text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary; }
+
+  /* Task lists */
+  .quill-prose ul[data-type="taskList"] { @apply list-none pl-0.5; }
+  .quill-prose ul[data-type="taskList"] li { @apply flex items-start gap-2.5 pl-0; }
+  .quill-prose ul[data-type="taskList"] li > label { @apply mt-[0.3em] flex shrink-0 select-none; }
+  .quill-prose ul[data-type="taskList"] li > label input { @apply size-4 cursor-pointer accent-primary; }
+  .quill-prose ul[data-type="taskList"] li > div { @apply min-w-0 flex-1; }
+  .quill-prose ul[data-type="taskList"] li[data-checked="true"] > div { @apply text-muted-foreground line-through decoration-muted-foreground/60; }
+  .quill-prose[contenteditable="false"] ul[data-type="taskList"] input { @apply cursor-default; }
+
+  /* Tables */
+  .quill-prose .tableWrapper { @apply my-4 overflow-x-auto; }
+  .quill-prose table { @apply w-full table-fixed border-collapse text-[15px]; }
+  .quill-prose th,
+  .quill-prose td { @apply relative border border-border px-3 py-2 text-left align-top; }
+  .quill-prose th { @apply bg-muted/70 font-semibold; }
+  .quill-prose th > p,
+  .quill-prose td > p { @apply my-0; }
+  .quill-prose .selectedCell::after { content: ""; @apply pointer-events-none absolute inset-0 bg-primary/10; }
+
+  /* Syntax highlighting (lowlight / highlight.js token classes), tuned to the Quill palette */
+  .quill-prose pre .hljs-comment,
+  .quill-prose pre .hljs-quote { @apply text-slate-500 italic; }
+  .quill-prose pre .hljs-keyword,
+  .quill-prose pre .hljs-selector-tag,
+  .quill-prose pre .hljs-built_in { @apply text-[oklch(0.45_0.17_265)]; }
+  .quill-prose pre .hljs-string,
+  .quill-prose pre .hljs-attr,
+  .quill-prose pre .hljs-template-tag { @apply text-[oklch(0.5_0.13_150)]; }
+  .quill-prose pre .hljs-number,
+  .quill-prose pre .hljs-literal,
+  .quill-prose pre .hljs-symbol { @apply text-[oklch(0.55_0.15_45)]; }
+  .quill-prose pre .hljs-title,
+  .quill-prose pre .hljs-section,
+  .quill-prose pre .hljs-function { @apply text-[oklch(0.5_0.16_300)]; }
+  .quill-prose pre .hljs-type,
+  .quill-prose pre .hljs-class,
+  .quill-prose pre .hljs-tag,
+  .quill-prose pre .hljs-name { @apply text-[oklch(0.5_0.12_220)]; }
+  .quill-prose pre .hljs-variable,
+  .quill-prose pre .hljs-params,
+  .quill-prose pre .hljs-property { @apply text-[oklch(0.45_0.09_25)]; }
+  .quill-prose pre .hljs-meta { @apply text-slate-500; }
+  .quill-prose pre .hljs-deletion { @apply bg-red-50 text-red-700; }
+  .quill-prose pre .hljs-addition { @apply bg-green-50 text-green-700; }
+
+  /* Placeholder (Tiptap Placeholder extension) */
+  .quill-prose p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply pointer-events-none float-left h-0 text-muted-foreground/70;
+  }
+}
+
+/* Syntax colours for dark mode (same hues, lighter) */
+@layer components {
+  .dark .quill-prose pre .hljs-comment,
+  .dark .quill-prose pre .hljs-quote,
+  .dark .quill-prose pre .hljs-meta { @apply text-slate-400; }
+  .dark .quill-prose pre .hljs-keyword,
+  .dark .quill-prose pre .hljs-selector-tag,
+  .dark .quill-prose pre .hljs-built_in { @apply text-[oklch(0.78_0.12_265)]; }
+  .dark .quill-prose pre .hljs-string,
+  .dark .quill-prose pre .hljs-attr,
+  .dark .quill-prose pre .hljs-template-tag { @apply text-[oklch(0.8_0.13_150)]; }
+  .dark .quill-prose pre .hljs-number,
+  .dark .quill-prose pre .hljs-literal,
+  .dark .quill-prose pre .hljs-symbol { @apply text-[oklch(0.8_0.13_60)]; }
+  .dark .quill-prose pre .hljs-title,
+  .dark .quill-prose pre .hljs-section,
+  .dark .quill-prose pre .hljs-function { @apply text-[oklch(0.8_0.12_300)]; }
+  .dark .quill-prose pre .hljs-type,
+  .dark .quill-prose pre .hljs-class,
+  .dark .quill-prose pre .hljs-tag,
+  .dark .quill-prose pre .hljs-name { @apply text-[oklch(0.8_0.1_220)]; }
+  .dark .quill-prose pre .hljs-variable,
+  .dark .quill-prose pre .hljs-params,
+  .dark .quill-prose pre .hljs-property { @apply text-[oklch(0.82_0.08_25)]; }
+}
+
+/* Printing / "Save as PDF": only the document page, in light colours. */
+@media print {
+  @page { margin: 18mm 16mm; }
+  html, body { background: white !important; }
+  .quill-print-page { box-shadow: none !important; border: 0 !important; padding: 0 !important; min-height: 0 !important; zoom: 1 !important; }
+  .quill-prose { min-height: 0 !important; }
+  .quill-prose a { color: inherit; }
+  .quill-prose pre { white-space: pre-wrap; break-inside: avoid; }
+  .quill-prose table, .quill-prose tr, .quill-prose img { break-inside: avoid; }
+  /* Deterrent for viewers without download permission (not a security boundary). */
+  [data-print-blocked] > * { display: none !important; }
+  [data-print-blocked]::after { content: "Printing is disabled for this document by its owner."; display: block; padding: 2rem; font: 14px sans-serif; }
+}
