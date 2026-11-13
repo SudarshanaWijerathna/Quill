@@ -2,6 +2,13 @@
 
 A lightweight collaborative document editor: create, format, import and share rich-text documents.
 
+**Live demo:** https://quill-docs-assessment.fly.dev. Sign in as `alice@example.com` or
+`bob@example.com` with the password `quill-demo-123`. The login page has one-click buttons. The
+app may take a few seconds to wake up on the first request.
+
+See also: [ARCHITECTURE.md](ARCHITECTURE.md), [AI_WORKFLOW.md](AI_WORKFLOW.md),
+[SUBMISSION.md](SUBMISSION.md).
+
 | Layer    | Stack                                                                 |
 | -------- | --------------------------------------------------------------------- |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui, Lucide, Tiptap |
@@ -267,7 +274,8 @@ local file and opens it. The title is the file name without its extension.
 | `COOKIE_SECURE`      | `false`                   | Set `true` when served over HTTPS         |
 | `COOKIE_SAMESITE`    | `lax`                     | `none` only for cross-site deployments    |
 | `SEED_DEMO_DATA`     | `false`                   | Seed demo users on startup (not in prod)  |
-| `ENVIRONMENT`        | `development`             | `production` disables demo seeding        |
+| `ENVIRONMENT`        | `development`             | `production`: disables demo seeding, enforces a strong `JWT_SECRET` and `COOKIE_SECURE` |
+| `FRONTEND_DIST`      | *(empty)*                 | Directory of the built SPA to serve from FastAPI (single-origin production) |
 
 **Frontend** (`frontend/.env.local`)
 
@@ -277,16 +285,60 @@ local file and opens it. The title is the file name without its extension.
 | `VITE_DEV_API_PROXY` | `http://localhost:8000` | Dev-server proxy target for `/api`            |
 | `VITE_SHOW_DEMO_ACCOUNTS` | `false`            | Show demo-login shortcuts in production builds |
 
-## Deployment notes
+## Deployment (Fly.io, single origin)
 
-- **Frontend:** `npm run build` produces static files in `frontend/dist` (any static host).
-  Configure SPA fallback to `index.html`.
-- **Backend:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set `ENVIRONMENT=production`,
-  a strong `JWT_SECRET` and `COOKIE_SECURE=true`. SQLite requires a persistent disk; otherwise
-  point `DATABASE_URL` at Postgres.
-- **Recommended: same-origin API.** Use the frontend host's rewrite/proxy feature to forward
-  `/api/*` to the backend and leave `VITE_API_URL` empty. The session cookie then stays
-  first-party, which browsers that block third-party cookies require.
-- **Alternative: separate API origin.** Set `VITE_API_URL` to the backend URL, `CORS_ORIGINS` to
-  the frontend URL, and `COOKIE_SAMESITE=none` with `COOKIE_SECURE=true`. Some browsers block
-  these cross-site cookies, so the rewrite approach is more reliable.
+The production build is **one container**: FastAPI serves the API at `/api/*` and the built React
+app for every other path, with an SPA fallback. Because the browser talks to a single origin, the
+httpOnly session cookie is first-party (`Secure`, `SameSite=Lax`), with no CORS or third-party
+cookie problems.
+
+| Piece | Where |
+| --- | --- |
+| Image | `Dockerfile` (multi-stage: Node 24 builds `frontend/dist`, then Python 3.12 runs uvicorn as a non-root user) |
+| Hosting | `fly.toml`: app `quill-docs-assessment`, region `iad`, one shared-CPU machine (512 MB), auto-stop when idle |
+| Database | SQLite at `/data/quill.db` on the Fly volume `quill_data` (1 GB, encrypted, daily snapshots). It persists across deploys and restarts, which was verified by restarting the machine |
+| Secrets | `JWT_SECRET` is a Fly secret. The app refuses to start in production without a strong one, or with `COOKIE_SECURE=false` |
+| Health | `GET /api/health`, used as the Fly HTTP check |
+
+**Deploy or redeploy** (requires `flyctl` and a logged-in account):
+
+```bash
+fly apps create quill-docs-assessment                      # first time only
+fly volumes create quill_data --region iad --size 1        # first time only
+fly secrets set JWT_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+fly deploy --ha=false                                      # SQLite on a volume: exactly one machine
+node frontend/scripts/verify-prod.mjs https://quill-docs-assessment.fly.dev   # smoke test
+```
+
+**Demo accounts in production** were created through the normal public registration endpoint. The
+seed script is disabled in production by design. The demo password is public, so treat everything
+in those accounts as public.
+
+**Other hosts:** any container host with a persistent disk works with the same image (set
+`DATABASE_URL`, `JWT_SECRET`, `COOKIE_SECURE=true`). For a split deployment, with the frontend on
+a static host and the API elsewhere, either proxy `/api/*` through the frontend host (recommended),
+or set `VITE_API_URL`, `CORS_ORIGINS` and `COOKIE_SAMESITE=none` (some browsers block those
+cross-site cookies).
+
+## Known limitations
+
+- **No real-time collaboration.** Concurrent editors are last-write-wins, and permission changes
+  reach an open editor on its next request.
+- **Single instance:** SQLite on one machine means no horizontal scaling. `DATABASE_URL` can point
+  at Postgres instead, though that isn't tested.
+- **PDF export** uses the browser's print dialog ("Save as PDF"), not a generated `.pdf` file.
+  Print and PDF restrictions for viewers without download permission are enforced only in the UI.
+  The backend can't block printing, and anything on screen can be copied.
+- **Import:** only `.txt` and `.md`, up to 2 MB, UTF-8. No DOCX or PDF. Markdown column
+  alignment, footnotes, HTML blocks, indented code and images (only their alt text is kept) are
+  not converted.
+- **Tables:** columns can't be resized and cells can't be merged. Underline is lost in Markdown
+  export.
+- **Sessions:** logout clears the cookie, but the stateless JWT stays valid until it expires
+  (24 hours).
+- **Sharing:** only with existing accounts. There are no email notifications, no public links and
+  no ownership transfer.
+- **Trash** is a placeholder; deleting a document is permanent.
+- **Cold start:** the machine auto-stops when idle, so the first request after idling can take a
+  few seconds.
+- **Bundle size:** the lazily loaded editor chunk is about 675 kB (214 kB gzipped).

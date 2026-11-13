@@ -1,10 +1,12 @@
 # Quill: single-origin production image (FastAPI serves the API and the built SPA).
 
 # ---- 1. Build the frontend ------------------------------------------------------------------------
-FROM node:22-slim AS web
+FROM node:24-slim AS web
 WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --no-audit --no-fund
+# `npm ci` fails here: the lockfile was generated on Windows and lacks Linux-only optional
+# dependencies (e.g. @emnapi/*). `npm install` keeps the locked versions and adds them.
+RUN npm install --no-audit --no-fund
 COPY frontend/ ./
 # Same origin: the API is at /api, so VITE_API_URL stays empty.
 ARG VITE_SHOW_DEMO_ACCOUNTS=false

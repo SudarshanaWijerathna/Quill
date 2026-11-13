@@ -1102,6 +1102,142 @@ Run by Claude Code, with results observed in command output:
 
 ---
 
+## Entry 8: Final delivery (last UI fixes, Git, production deployment)
+
+**Status:** Complete. **Deployed and verified at https://quill-docs-assessment.fly.dev.**
+
+### Prompt (summary)
+
+With about 70 minutes left, the developer asked Claude Code to finish without adding major
+features:
+
+- **Phase A:** a dashboard card menu with Rename, Share, Download and Delete, respecting
+  permissions; move File to the right end of the toolbar row; keep the toolbar visible but
+  disabled in Viewing mode.
+- **Phase B:** `.gitignore` and secrets review, Git initialization and a commit, and production
+  configuration.
+- **Phase C:** all test suites, the production build, lint, and checks for localhost URLs,
+  credentials and authorization.
+- **Phase D:** deploy, and verify the public URLs before claiming success.
+- **Phase E:** README, ARCHITECTURE, AI_WORKFLOW, SUBMISSION and VIDEO_URL.
+
+### Phase A: UI corrections
+
+- **Card menu:** `DocumentActions.tsx` shows Rename, Share and Delete to owners only, and a
+  Download submenu (Markdown or text, through the permission-checked export API) whenever
+  `can_download` is true.
+  - For shared rows, the menu shows only what the user may do. A viewer without download
+    permission gets no menu.
+  - The dashboard opens the existing `ShareDialog`.
+  - `saveBlob` moved to `lib/download.ts` and is shared with the File menu.
+- **Toolbar:**
+  - `EditorToolbar` gained a `readOnly` prop and a `trailing` slot. The File menu now sits at the
+    far right of the toolbar row and was removed from under the title.
+  - The toolbar is always visible. In Viewing mode, and for viewers, the formatting controls are
+    disabled (`aria-disabled` on the toolbar).
+  - Decision: the toolbar uses an explicit `readOnly` prop rather than Tiptap's editable state,
+    because `setEditable(…, false)` emits no event the toolbar could react to.
+- **Tests:** three e2e assertions that expected the toolbar to be *hidden* were updated to expect
+  it *disabled*, and a card-menu e2e test was added. The full e2e suite passed **37 of 37**.
+
+### Phase B: Git and production configuration
+
+- **Secrets review:** `.gitignore` already excluded `.env*`, `*.db`, virtualenvs,
+  `node_modules`, `dist` and the Playwright output. The only sensitive-looking file present was
+  the ignored local `backend/quill.db`.
+- **Git:** initialized (`main`); 108 files staged. Claude Code checked that no env files,
+  databases, virtualenvs, builds or test artifacts were staged, then made the first commit with
+  the developer's existing git identity.
+- **Single-origin production:** when `FRONTEND_DIST` is set, FastAPI serves `/assets`, static
+  files and an SPA fallback, while `/api/*` keeps JSON 404s. Claude Code checked this locally:
+  the SPA routes, `/quill.svg` and the assets were served, an unknown `/api` path returned 404,
+  and an encoded `../` path-traversal attempt returned `index.html`, not the file.
+- **Fail-fast in production:** with `ENVIRONMENT=production`, the app refuses to start unless
+  `JWT_SECRET` is strong (32+ characters, not the dev default) and `COOKIE_SECURE` is true. This
+  was verified locally: it raised `RuntimeError`.
+- **Deployment files:**
+  - `Dockerfile`: multi-stage (Node build, then Python 3.12 slim) running as a non-root user.
+  - `.dockerignore`.
+  - `fly.toml`: one machine, the `quill_data` volume at `/data`, HTTPS forced, and the
+    `/api/health` check.
+- **Hosting choice:** the only hosting CLI installed and logged in was `flyctl`, on the
+  developer's account. Its remote builder meant no local Docker was needed. Same-origin hosting
+  avoids the cross-site cookie problems documented since Phase 2.
+- **Data implications, explained before acting:** the developer's local database was left
+  untouched. Production starts from an empty database on a new volume, and existing local data was
+  not migrated.
+
+### Phase C: verification before deployment
+
+- Backend `pytest` passed **64 of 64**, unit `vitest` passed **39 of 39**, and Playwright passed
+  **37 of 37**. The production build passed, and lint showed 0 errors and 1 warning (shadcn's
+  stock `button.tsx`).
+- **Hardcoded localhost:** found only in the dev default for `CORS_ORIGINS` (overridden in
+  `fly.toml`) and in the link-URL normalizer's pattern. The frontend uses relative `/api`.
+- **Credentials:** the only one found was the **intentionally public demo password** (README, dev
+  login shortcuts, tests, seed). There is no real secret in the repository, and the dev JWT
+  default is rejected in production.
+- **Authorization audit (route by route):**
+  - Public: only `register`, `login`, `logout` and `health`; `session` allows an optional user.
+  - Login required: every document and share route.
+  - Central check: every per-document route calls `require_role` or `require_download`.
+  - A first scripted audit printed nothing because its dependency walk didn't match this FastAPI
+    version, so it was replaced with a direct source scan.
+
+### Phase D: deployment (problems were real and are recorded)
+
+1. **Resources created:** the app `quill-docs-assessment`, the 1 GB volume `quill_data` (encrypted,
+   daily snapshots), and the `JWT_SECRET` Fly secret, generated locally and never printed or
+   written to disk.
+2. **Deploy 1 failed** at `npm ci` with Node 22. Claude Code had kept only the last 25 lines of
+   output, which were npm usage text, and assumed an npm version mismatch.
+3. **Deploy 2 failed** the same way with Node 24. A build-only rerun with the **full log** showed
+   the actual error: `EUSAGE … Missing: @emnapi/core@2.0.0-beta.2 from lock file`. The lockfile,
+   generated on Windows, lacks Linux-only optional dependencies. The fix was `npm install` in the
+   image (it keeps the locked versions and adds the missing packages), explained in a comment.
+   Node 24 was kept to match local development.
+4. **Deploy 3 succeeded.**
+5. **Public verification** used `frontend/scripts/verify-prod.mjs` (Playwright with Edge against
+   the live URL). The first run stopped with "Invalid URL", a bug in the script itself: browser
+   request contexts need absolute URLs. After the fix, **19 of 19 checks passed**:
+   - health; demo accounts (created through the public registration endpoint, since production
+     seeding is disabled by design)
+   - login cookie `HttpOnly; Secure; SameSite=lax`; unauthenticated 401; SPA deep link; favicon
+   - UI login; bold text, autosave and title persisting after a refresh
+   - Markdown import with a heading, task list and table
+   - sharing to Bob; Bob sees the document under "Shared with me", has a read-only editor, gets
+     403 for a PATCH and 403 for an export without download permission
+   - the owner's export works; no page errors
+6. **Persistence verified:** after `fly apps restart`, Alice's documents were identical before and
+   after, with the machine using volume `vol_r68xeolzwk3dz7p4`.
+7. **Cleanup:** the first, crashed verification run had already created two test documents, and
+   the older duplicates were deleted through the API. One "Production check" and one
+   "prod-import" document remain in Alice's demo account as evidence.
+
+### Phase E: documentation
+
+- `README.md`: the live URL and demo accounts; a deployment section covering the architecture,
+  deploy commands and secrets; a consolidated **Known limitations** section; and the
+  `FRONTEND_DIST` environment variable.
+- `ARCHITECTURE.md` (new): components, the authorization matrix, the data model, the deployment
+  architecture and its trade-offs.
+- `SUBMISSION.md` (new): what is included and not included.
+- `VIDEO_URL.txt` (new): a **placeholder**. No video URL was provided to Claude Code, so none was
+  invented.
+
+### Remaining limitations
+
+See README → Known limitations. Specific to this phase:
+
+- Production runs a **single SQLite machine**. There are no automated backups beyond Fly's daily
+  volume snapshots, and no horizontal scaling.
+- **Public demo password:** anyone can sign in to the demo accounts on the live site.
+- The machine **auto-stops when idle**, so the first request after a pause has a cold start.
+- The Docker build uses `npm install` instead of `npm ci` (lockfile platform gap), so transitive
+  versions could drift slightly between builds.
+
+---
+
 ## Planned work (not yet implemented)
 
 1. ~~**Authentication**~~: done in Entry 2.
@@ -1110,4 +1246,4 @@ Run by Claude Code, with results observed in command output:
 4. ~~**Import**~~: done in Entry 5.
 5. ~~**Sharing**~~: done in Entry 4.
 6. ~~**Testing for sharing permissions**~~: done in Entry 4.
-7. **Deployment** preparation.
+7. ~~**Deployment**~~: done in Entry 8 (https://quill-docs-assessment.fly.dev).
